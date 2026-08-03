@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     allowed_origins: Annotated[list[str], NoDecode] = Field(
         default_factory=lambda: ["http://localhost:5173", "http://127.0.0.1:5173"]
     )
+    allowed_origin_regex: str | None = r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$"
+    allow_credentials: bool = True
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -25,6 +27,13 @@ class Settings(BaseSettings):
     def parse_allowed_origins(cls, value: object) -> object:
         if isinstance(value, str) and not value.strip().startswith("["):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
+        return value
+
+    @field_validator("allowed_origin_regex", mode="before")
+    @classmethod
+    def parse_allowed_origin_regex(cls, value: object) -> object:
+        if isinstance(value, str) and not value.strip():
+            return None
         return value
 
 
