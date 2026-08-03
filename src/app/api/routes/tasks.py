@@ -4,16 +4,24 @@ from src.app.schemas.voice import Task, TaskCreate, TaskReplace, TaskUpdate
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
+# In-memory storage for task data.
+task: list[Task] = []
+
 
 @router.get("", response_model=list[Task])
 def get_tasks() -> list[Task]:
-    raise_not_implemented("GET /tasks")
+    return task
 
 
 @router.post("", response_model=Task, status_code=status.HTTP_201_CREATED)
 def create_task(payload: TaskCreate) -> Task:
-    _ = payload
-    raise_not_implemented("POST /tasks")
+    new_task = Task(
+        id=(task[-1].id + 1) if task else 1,
+        title=payload.title,
+        done=payload.done,
+    )
+    task.append(new_task)
+    return new_task
 
 
 @router.put("/{task_id}", response_model=Task)

@@ -21,7 +21,7 @@ class TaskUpdate(BaseModel):
 class Task(BaseModel):
     id: int
     title: str
-    done: bool
+    done: bool = False
 
 
 class InstructionRequest(BaseModel):
