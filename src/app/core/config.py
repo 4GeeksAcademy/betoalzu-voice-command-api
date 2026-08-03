@@ -7,8 +7,9 @@ from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 class Settings(BaseSettings):
     groq_api_key: str
-    groq_model: str = "llama-3.1-8b-instant"
-    groq_transcription_model: str = "whisper-large-v3-turbo"
+    groq_base_url: str = "https://llm.4geeks.ai/v1"
+    groq_model: str = "downtown-miami/groq/llama-3.1-8b-instant"
+    groq_transcription_model: str = "downtown-miami/groq/whisper-large-v3-turbo"
     request_timeout_seconds: float = 45.0
     allowed_origins: Annotated[list[str], NoDecode] = Field(
         default_factory=lambda: ["http://localhost:5173", "http://127.0.0.1:5173"]
