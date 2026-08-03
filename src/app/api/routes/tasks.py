@@ -1,6 +1,16 @@
-from fastapi import APIRouter, HTTPException, status
+import re
+from typing import Any
 
-from src.app.schemas.voice import Task, TaskCreate, TaskReplace, TaskUpdate
+from fastapi import APIRouter, HTTPException, status
+from pydantic import ValidationError
+
+from src.app.schemas.voice import (
+    InstructionPayload,
+    Task,
+    TaskCreate,
+    TaskReplace,
+    TaskUpdate,
+)
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
@@ -78,4 +88,59 @@ def raise_task_not_found(task_id: int) -> None:
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
         detail=f"Task with id {task_id} not found",
+    )
+
+
+def execute_task_instruction(instruction: InstructionPayload) -> Any:
+    """Execute a validated instruction payload against in-memory task routes."""
+    method = instruction.method.strip().upper()
+    endpoint = instruction.endpoint.strip()
+    task_id = parse_task_id(endpoint)
+
+    try:
+        if method == "GET" and task_id is None:
+            return get_tasks()
+
+        if method == "POST" and task_id is None:
+            payload = TaskCreate.model_validate(instruction.params)
+            return create_task(payload)
+
+        if method == "PUT" and task_id is not None:
+            payload = TaskReplace.model_validate(instruction.params)
+            return replace_task(task_id, payload)
+
+        if method == "PATCH" and task_id is not None:
+            payload = TaskUpdate.model_validate(instruction.params)
+            return update_task(task_id, payload)
+
+        if method == "DELETE" and task_id is not None:
+            return delete_task(task_id)
+    except ValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=exc.errors(),
+        ) from exc
+
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail=(
+            "Instruction does not map to supported task routes. "
+            "Use: GET /tasks, POST /tasks, PUT|PATCH|DELETE /tasks/{task_id}."
+        ),
+    )
+
+
+def parse_task_id(endpoint: str) -> int | None:
+    normalized = endpoint.strip()
+
+    if normalized in {"/tasks", "/tasks/"}:
+        return None
+
+    match = re.fullmatch(r"/tasks/(?P<task_id>\d+)/?", normalized)
+    if match:
+        return int(match.group("task_id"))
+
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="Unsupported endpoint in instruction. Only /tasks routes are allowed.",
     )

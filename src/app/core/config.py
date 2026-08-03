@@ -13,7 +13,13 @@ class Settings(BaseSettings):
     allowed_origins: Annotated[list[str], NoDecode] = Field(
         default_factory=lambda: ["http://localhost:5173", "http://127.0.0.1:5173"]
     )
-    allowed_origin_regex: str | None = r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$"
+    allowed_origin_regex: str | None = (
+        r"^https?://(" 
+        r"localhost|127\.0\.0\.1|"
+        r"[a-z0-9-]+\.app\.github\.dev|"
+        r"[a-z0-9-]+\.githubpreview\.dev"
+        r")(:\d+)?$"
+    )
     allow_credentials: bool = True
 
     model_config = SettingsConfigDict(
