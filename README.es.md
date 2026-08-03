@@ -21,6 +21,10 @@ _These instructions are also available in [English](./README.md)._
 
 Este repositorio es el template inicial del proyecto **Voice Command API**.
 
+## Documentacion detallada de la API
+
+Consulta la guia tecnica completa en [API.es.md](API.es.md).
+
 El frontend ya esta construido. Graba hasta **20 segundos** de audio en el navegador, envia ese audio a tu backend y muestra:
 
 - la transcripcion devuelta por la API
